@@ -34,7 +34,7 @@
 						
 						<c:choose>
 						<c:when test="${!empty sessionScope['admin']}">
-						     <c:out value="admin: "/><c:out value="${sessionScope['currentUser']}"/>
+						     <c:out value="admin: "/><c:out value="${sessionScope['currentUser']}"/> 
 						</c:when>
 						<c:when test="${!empty sessionScope['currentUser']}">
 							<c:out value="${sessionScope['currentUser']}"/>
