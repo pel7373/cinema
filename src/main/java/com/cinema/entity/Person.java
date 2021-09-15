@@ -4,8 +4,12 @@ import java.io.Serializable;
 
 public class Person implements Serializable {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private int id;
-	private String login = "";
+	private String email = "";
 	private String password = "";
 	private String name = "";
 	private int role = 2;
@@ -14,9 +18,9 @@ public class Person implements Serializable {
 		super();
 	}
 
-	public Person(String login, String password, String name, int role) {
+	public Person(String email, String password, String name, int role) {
 		super();
-		this.login = login;
+		this.email = email;
 		this.password = password;
 		this.name = name;
 		this.role = role;
@@ -30,12 +34,12 @@ public class Person implements Serializable {
 		this.id = id;
 	}
 
-	public String getLogin() {
-		return login;
+	public String getEmail() {
+		return email;
 	}
 
-	public void setLogin(String login) {
-		this.login = login;
+	public void setEmail(String email) {
+		this.email = email;
 	}
 
 	public String getPassword() {
@@ -43,9 +47,9 @@ public class Person implements Serializable {
 	}
 
 	public void setPassword(String password) {
-		//this.password = Integer.toString(password.hashCode());
+		this.password = encryptPassword(password);
 	}
-
+	
 	public String getName() {
 		return name;
 	}
@@ -64,7 +68,10 @@ public class Person implements Serializable {
 
 	@Override
 	public String toString() {
-		return "User [login=" + login + ", name=" + name + ", role=" + role + "]";
+		return "User [email = " + email + ", name = " + name + ", role = " + role + "]";
 	}
 
+	public String encryptPassword(String password) {
+		return Integer.toString(password.hashCode());
+	}
 }

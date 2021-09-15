@@ -60,10 +60,6 @@ public class DBManager {
 	}
 
 	public static Connection getConnection(String connectionUrl) throws SQLException {
-		return DriverManager.getConnection(connectionUrl);
-	}
-
-	public static Boolean insertPerson(Person person) {
 		try {
 			Class.forName("com.mysql.cj.jdbc.Driver").getDeclaredConstructor().newInstance();
 		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException
@@ -71,6 +67,11 @@ public class DBManager {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
+
+		return DriverManager.getConnection(connectionUrl);
+	}
+
+	public static Boolean insertPerson(Person person) {
 		PreparedStatement ps = null;
 		ResultSet id = null;
 		Connection connection = null;
@@ -78,23 +79,51 @@ public class DBManager {
 	        locker.lock();
 	        System.out.println(URL_CONNECTION);
 	        connection = getConnection(URL_CONNECTION);
-	        ps = connection.prepareStatement("INSERT INTO person VALUES (DEFAULT , ?, ?, ?, 2);",          
+	        ps = connection.prepareStatement("INSERT INTO person VALUES (DEFAULT , ?, ?, ?, ?);",          
 	        		Statement.RETURN_GENERATED_KEYS);
-	        ps.setString(1, person.getLogin());
+	        ps.setString(1, person.getEmail());
 	        ps.setString(2, person.getPassword());
 	        ps.setString(3, person.getName());
+	        ps.setInt(4, person.getRole());
 	        ps.executeUpdate();
 	        id = ps.getGeneratedKeys();
 	        if (id.next()) { 
 	          	  person.setId(id.getInt(1)); 
 	        }
 	      } catch (Exception e) {
-			  logger.severe("Insert person: " + e.getMessage() + "; Error with person: " + person);
+			  logger.severe("Insert person: " + e.getMessage() + "; Error with person: " + person.getEmail());
 	      } finally {
 		    	closeAllConnections(connection, id, ps);
 		    	locker.unlock();
 	      }
 		return true;
+	}
+
+	public static Person getPerson(String email) {
+
+		PreparedStatement ps = null;
+		ResultSet id = null;
+		Connection connection = null;
+		try {
+	        locker.lock();
+	        connection = getConnection(URL_CONNECTION);
+	        ps = connection.prepareStatement("SELECT * FROM person where email = ?;",
+	        		Statement.RETURN_GENERATED_KEYS);          
+	        ps.setString(1, email);
+	        id = ps.executeQuery();
+	        
+	        if (id.next()) { 
+	          	Person person1 = new Person(id.getString(2), id.getString(3), id.getString(4), id.getInt(1));
+	          	//person1.setId(id.getInt(1));
+	        	return person1; 
+	        }
+	      } catch (Exception e) {
+			  logger.severe("Get person:" + e.getMessage() + "||| " + email);
+	      } finally {
+	    	  closeAllConnections(connection, id, ps);
+	    	  locker.unlock();
+	      }
+		return null;
 	}
 
 	public List<Person> findAllPersons() {
@@ -196,31 +225,6 @@ public class DBManager {
 		return null;
 	}
 
-	public Person getPerson(String login) {
-		PreparedStatement ps = null;
-		ResultSet id = null;
-		Connection connection = null;
-		try {
-	        locker.lock();
-	        connection = getConnection(URL_CONNECTION);
-	        ps = connection.prepareStatement("SELECT * FROM persons where login = ?;",
-	        		Statement.RETURN_GENERATED_KEYS);          
-	        ps.setString(1, login);
-	        id = ps.executeQuery();
-	        
-	        if (id.next()) { 
-	          	Person person1 = new Person(login, "", "", 2);
-	          	person1.setId(id.getInt(1));
-	        	return person1; 
-	        }
-	      } catch (Exception e) {
-			  logger.severe("Get person:" + e.getMessage() + "||| " + login);
-	      } finally {
-	    	  closeAllConnections(connection, id, ps);
-	    	  locker.unlock();
-	      }
-		return null;
-	}
 
 	public Boolean setTeamsForPerson(Person person, Movie... movies) {
 		PreparedStatement ps = null;
@@ -261,7 +265,7 @@ public class DBManager {
 		List<Movie> list = new ArrayList<>();
 	
 		try {
-			String personName = person.getLogin();
+			String personName = person.getEmail();
 			//int personId = getPerson(person).getId();
 			locker.lock();
 	        connection = getConnection(URL_CONNECTION);

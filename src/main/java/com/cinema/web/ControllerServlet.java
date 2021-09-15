@@ -19,6 +19,7 @@ import com.cinema.entity.Person;
 		urlPatterns={ "/index",
 					"/signin",
 					"/signup",
+					"/signout",
 					"/category",
 					"/addToCart",
 					"/viewCart", 
@@ -40,14 +41,19 @@ public class ControllerServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
 
+		request.setCharacterEncoding("UTF-8");
+		HttpSession session = request.getSession();
         String userPath = request.getServletPath();
         
-        if (userPath.equals("/signin")) {
-        	userPath = "signin";
+        if (userPath.equals("/signout")) {
+            // TODO: Implement cart page request
 
-        // if cart page is requested
-        } else 
-        // if category page is requested
+        	session.removeAttribute("currentUser");
+        	session.removeAttribute("admin");
+            userPath = "index";
+
+        } else
+        
         if (userPath.equals("/category")) {
             // TODO: Implement category request
         	userPath = "category";
@@ -79,7 +85,6 @@ public class ControllerServlet extends HttpServlet {
             // place in request scope
             request.setAttribute("language", language);
             
-            HttpSession session = request.getSession();
             String userView = (String) session.getAttribute("view");
 
             if (userView == null) {     // if the session doesn'nt exist -> view == null, 
@@ -123,7 +128,6 @@ public class ControllerServlet extends HttpServlet {
 
 		request.setCharacterEncoding("UTF-8");
 		HttpSession session = request.getSession();
-		
         String userPath = request.getServletPath();
 
 		System.out.println("LoginServlet#doPost" + "; userPath " + userPath);
@@ -131,24 +135,24 @@ public class ControllerServlet extends HttpServlet {
 		if (userPath.equals("/signup")) {
         	
 			// (1) obtain an input info
-			String login = request.getParameter("login");
+			String email = request.getParameter("email");
 			String password = request.getParameter("password");
 			String name = request.getParameter("name");
-			System.out.println("login ==> " + login + "; name ==> " + name);
+			int role = 2;
+			System.out.println("email ==> " + email + "; name ==> " + name);
 			
 			// (2) process an input info
 			// obtain from DB
 			Person person = new Person();
-			person.setLogin(login);
+			person.setEmail(email);
 			person.setPassword(password);
+			
+			System.out.println("encrypted password = " + person.encryptPassword(password));
+			
 			person.setName(name);
-			person.setRole(2);
+			person.setRole(role);
 			
-			//DBManager.insertPerson(person);
-			
-			//DBManager.getInstance();
-	        
-	        // if new user was added successfully - save info in session and go to index.jps 
+			// if new user was added successfully - save info in session and go to index.jps 
 	        if (DBManager.insertPerson(person)) {
 	    		
 	    		session.setAttribute("currentUser", name);
@@ -157,14 +161,37 @@ public class ControllerServlet extends HttpServlet {
 	        	userPath = "signup";
 	        }
 
-
-        // if cart page is requested
+        // if signin page is requested
         } else if (userPath.equals("/signin")) {
-            // TODO: Implement category request
-        	userPath = "category";
+            
+        	// TODO: Implement category request
+			// (1) obtain an input info
+			String email = request.getParameter("email");
+			String password = request.getParameter("password");
+			Person person = null;
+			
+			try {
+				 person = DBManager.getPerson(email);
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+			if (person.getEmail().equals(email) && person.getPassword().equals(person.encryptPassword(password))) {
+				session.setAttribute("currentUser", person.getName());
+	    		userPath = "index";
+	    		System.out.println("Залогинился юзер ==> " + email + "; name ==> " + person.getName());
+	    		if (person.getRole() == 1) {
+	    			session.setAttribute("admin", person.getName());
+	    			System.out.println("Залогинился админ ==> " + email + "; name ==> " + person.getName());
 
-        // if cart page is requested
-        } else if (userPath.equals("/viewCart")) {
+		        } 
+			} else {
+				userPath = "signin";
+			}
+
+			// if sign Out page is requested
+        }  else if (userPath.equals("/viewCart")) {
             // TODO: Implement cart page request
         	
             userPath = "cart";
@@ -188,12 +215,9 @@ public class ControllerServlet extends HttpServlet {
         }
 
         // use RequestDispatcher to forward request internally
-        String url = userPath + ".jsp";
 
-        try {
-            request.getRequestDispatcher(url).forward(request, response);
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
+		String url = request.getContextPath() + "/" + userPath;
+        response.sendRedirect(url);
+
     }
 }

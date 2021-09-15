@@ -8,7 +8,7 @@
 <!-- Sign In Form  -->
 <div id="caption"><fmt:message key='label.signUpWithEmail'/></div>
 	<form action="signup" method="post">
-		<label><fmt:message key='label.yourEmail'/></label>&nbsp;<input name="login" value=""><br>	
+		<label><fmt:message key='label.yourEmail'/></label>&nbsp;<input name="email" value=""><br>	
 		<label><fmt:message key='label.yourPassword'/></label>&nbsp;<input name="password" type="password" value=""><br>	
 		<label><fmt:message key='label.signUpName'/></label>&nbsp;<input name="name" value=""><br>	
 

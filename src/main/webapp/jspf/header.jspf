@@ -31,11 +31,23 @@
                 <div id="widgetBar">
 
 					<div class="headerWidget">
-						<!--  ${currentUser}
-						 -->
-						<a href="signin"><fmt:message key='label.signin'/></a>
-						    <c:when test="${empty sessionScope[currentUser]}">
-
+						
+						<c:choose>
+						<c:when test="${!empty sessionScope['admin']}">
+						     <c:out value="admin: "/><c:out value="${sessionScope['currentUser']}"/>
+						</c:when>
+						<c:when test="${!empty sessionScope['currentUser']}">
+							<c:out value="${sessionScope['currentUser']}"/>
+						</c:when>
+						<c:otherwise>
+							 <a href="signin"><fmt:message key='label.signin'/></a>
+						</c:otherwise>
+												    
+						</c:choose>
+						
+						<c:if test="${!empty sessionScope['currentUser']}">
+						     &nbsp;|| <a href="signout"><fmt:message key='label.signOut'/></a>
+						</c:if>    
 
 					</div>
 					
