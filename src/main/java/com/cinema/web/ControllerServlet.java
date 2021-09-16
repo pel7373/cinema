@@ -1,6 +1,7 @@
 package com.cinema.web;
 
 import java.io.IOException;
+
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -44,13 +45,15 @@ public class ControllerServlet extends HttpServlet {
 		request.setCharacterEncoding("UTF-8");
 		HttpSession session = request.getSession();
         String userPath = request.getServletPath();
-        
-        if (userPath.equals("/signout")) {
-            // TODO: Implement cart page request
+        String language = request.getParameter("language");
 
+        System.out.println("Start of doGet# userPath: " + userPath + "; user: " + request.getParameter("currentUser"));
+
+        if (userPath.equals("/signout")) {
         	session.removeAttribute("currentUser");
         	session.removeAttribute("admin");
-            userPath = "index";
+        	// place in request scope
+        	userPath = "index";
 
         } else
         
@@ -79,32 +82,25 @@ public class ControllerServlet extends HttpServlet {
 
         // if user switches language
         } else if (userPath.equals("/chooseLanguage")) {
-        	// get language choice
-            String language = request.getParameter("language");
+        	
+        	//request.setAttribute("language", language);
             
             // place in request scope
-            request.setAttribute("language", language);
-            
             String userView = (String) session.getAttribute("view");
-
+            System.out.println(userView);
+            
             if (userView == null) {     // if the session doesn'nt exist -> view == null, 
                                         // so we forward user to the index.jsp
                 userPath = "index";
             } else {
-
                 // if previous view is index or cannot be determined, send user to welcome page
             	// forward request to welcome page
-            	String url = userView + ".jsp";
-            	
-	            try {
-	                request.getRequestDispatcher(url).forward(request, response);
-	            } catch (Exception ex) {
-	                ex.printStackTrace();
-	            }
-	            return;
+            	userPath = userView;
             }
         }
-
+        
+        System.out.println("#End of doGet# userPath: " + userPath + "; user: " + request.getParameter("currentUser"));
+        
         // use RequestDispatcher to forward request internally
         String url = userPath + ".jsp";
 
@@ -129,9 +125,9 @@ public class ControllerServlet extends HttpServlet {
 		request.setCharacterEncoding("UTF-8");
 		HttpSession session = request.getSession();
         String userPath = request.getServletPath();
+                
+        System.out.println("Start of doPost# userPath: " + userPath + "; user: " + request.getParameter("currentUser"));
 
-		System.out.println("LoginServlet#doPost" + "; userPath " + userPath);
-		
 		if (userPath.equals("/signup")) {
         	
 			// (1) obtain an input info
@@ -161,6 +157,9 @@ public class ControllerServlet extends HttpServlet {
 	        	userPath = "signup";
 	        }
 
+	        // place in request scope
+	        //request.setAttribute("language", language);
+
         // if signin page is requested
         } else if (userPath.equals("/signin")) {
             
@@ -177,14 +176,13 @@ public class ControllerServlet extends HttpServlet {
 				e.printStackTrace();
 			}
 			
-			if (person.getEmail().equals(email) && person.getPassword().equals(person.encryptPassword(password))) {
+			if (person != null && person.getEmail().equals(email) && person.getPassword().equals(person.encryptPassword(password))) {
 				session.setAttribute("currentUser", person.getName());
 	    		userPath = "index";
 	    		System.out.println("Залогинился юзер ==> " + email + "; name ==> " + person.getName());
 	    		if (person.getRole() == 1) {
 	    			session.setAttribute("admin", person.getName());
 	    			System.out.println("Залогинился админ ==> " + email + "; name ==> " + person.getName());
-
 		        } 
 			} else {
 				userPath = "signin";
@@ -214,10 +212,12 @@ public class ControllerServlet extends HttpServlet {
             userPath = "confirmation";
         }
 
+        System.out.println("#End of doPost# userPath: " + userPath + "; user: " + request.getParameter("currentUser"));
+
         // use RequestDispatcher to forward request internally
-
-		String url = request.getContextPath() + "/" + userPath;
-        response.sendRedirect(url);
-
+		//String url = request.getContextPath() + "/" + userPath;
+        //response.sendRedirect(url);
+		String url = userPath + ".jsp";
+		request.getRequestDispatcher(url).forward(request, response);
     }
 }

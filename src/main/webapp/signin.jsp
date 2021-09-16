@@ -7,9 +7,9 @@
 
 <!-- Sign In Form  -->
 <div id="caption"><fmt:message key='label.signInWithEmail'/></div>
-	<form action="signin" method="post">
-		<label><fmt:message key='label.yourEmail'/></label>&nbsp;<input name="email" value=""><br>	
-		<label><fmt:message key='label.yourPassword'/></label>&nbsp;<input name="password" type="password" value=""><br>	
+	<form action="signin" method="post" accept-charset="UTF-8">
+		<label><fmt:message key='label.yourEmail'/></label>&nbsp;<input name="email" value="<fmt:message key='label.yourEmail'/>"><br>	
+		<label><fmt:message key='label.yourPassword'/></label>&nbsp;<input name="password" type="password" value="1"><br>	
 		<input type="submit" value="<fmt:message key='label.enter'/>">
 	</form>
 

@@ -6,12 +6,13 @@ import javax.servlet.*;
 import javax.servlet.annotation.WebListener;
 
 @WebListener
-public class MyListener implements ServletContextListener {
+public class CinemaListener implements ServletContextListener {
 
     public void contextInitialized(ServletContextEvent sce)  { 
-    	System.out.println("MyListener#contextInitialized");
+    	System.out.println("CinemaListener#contextInitialized");
     	
     	ServletContext context = sce.getServletContext();
+    	
     	String localesAsString = context.getInitParameter("locales");
     	
     	List<String> locales =
