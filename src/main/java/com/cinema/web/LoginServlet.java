@@ -9,7 +9,7 @@ import javax.servlet.*;
 import javax.servlet.annotation.*;
 import javax.servlet.http.*;
 
-import com.cinema.db.DBManager;
+import com.cinema.dao.PersonDAO;
 import com.cinema.entity.Person;
 
 @WebServlet("/login")
@@ -32,7 +32,7 @@ public class LoginServlet extends HttpServlet {
 		// (2) process an input info
 		// obtain from DB
 		Person person = new Person();
-		person.setLogin(login);
+		person.setEmail(login);
 		person.setPassword(password);
 		person.setName(name);
 		person.setRole(2);
@@ -42,7 +42,7 @@ public class LoginServlet extends HttpServlet {
 		//DBManager.getInstance();
         
         // Part 1
-        DBManager.insertPerson(person);
+        PersonDAO.insertPerson(person);
         
         	
 		

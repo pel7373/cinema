@@ -1,6 +1,7 @@
 package com.cinema.web;
 
 import java.io.IOException;
+import java.util.List;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -9,7 +10,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import com.cinema.db.DBManager;
+import com.cinema.dao.PersonDAO;
 import com.cinema.entity.Person;
 
 /**
@@ -20,6 +21,11 @@ import com.cinema.entity.Person;
 		urlPatterns={ "/index",
 					"/signin",
 					"/signup",
+					"/addNewUser",
+					"/deleteUser",
+					"/goToEditUser",
+					"/updateUser",
+					"/list-users",
 					"/signout",
 					"/category",
 					"/addToCart",
@@ -46,18 +52,23 @@ public class ControllerServlet extends HttpServlet {
 		HttpSession session = request.getSession();
         String userPath = request.getServletPath();
         String language = request.getParameter("language");
+		session.removeAttribute("alert-message");
 
         System.out.println("Start of doGet# userPath: " + userPath + "; user: " + request.getParameter("currentUser"));
 
         if (userPath.equals("/signout")) {
         	session.removeAttribute("currentUser");
         	session.removeAttribute("admin");
-        	// place in request scope
+        	session.removeAttribute("id");
         	userPath = "index";
 
-        } else
-        
-        if (userPath.equals("/category")) {
+			// if listOfUsers page is requested
+        }  else if (userPath.equals("/list-users")) {
+        	List<Person> listOfPersons = PersonDAO.getAllPersons();
+        	session.setAttribute("listOfUsers", listOfPersons);
+        	userPath = "list-users";
+        	
+        } else if (userPath.equals("/category")) {
             // TODO: Implement category request
         	userPath = "category";
 
@@ -69,12 +80,9 @@ public class ControllerServlet extends HttpServlet {
             
          // if cart page is requested
          } else if (userPath.equals("/index")) {
-            // TODO: Implement cart page request
-            	
             userPath = "index";
 
-
-        // if checkout page is requested
+         // if checkout page is requested
         } else if (userPath.equals("/checkout")) {
             // TODO: Implement checkout page request
         	
@@ -82,10 +90,6 @@ public class ControllerServlet extends HttpServlet {
 
         // if user switches language
         } else if (userPath.equals("/chooseLanguage")) {
-        	
-        	//request.setAttribute("language", language);
-            
-            // place in request scope
             String userView = (String) session.getAttribute("view");
             System.out.println(userView);
             
@@ -125,8 +129,9 @@ public class ControllerServlet extends HttpServlet {
 		request.setCharacterEncoding("UTF-8");
 		HttpSession session = request.getSession();
         String userPath = request.getServletPath();
+		session.removeAttribute("alert-message");
                 
-        System.out.println("Start of doPost# userPath: " + userPath + "; user: " + request.getParameter("currentUser"));
+        System.out.println("Start of doPost# userPath: " + userPath + "; current user: " + request.getParameter("currentUser"));
 
 		if (userPath.equals("/signup")) {
         	
@@ -142,15 +147,13 @@ public class ControllerServlet extends HttpServlet {
 			Person person = new Person();
 			person.setEmail(email);
 			person.setPassword(password);
-			
-			System.out.println("encrypted password = " + person.encryptPassword(password));
-			
 			person.setName(name);
 			person.setRole(role);
 			
+			System.out.println("encrypted password = " + person.encryptPassword(password));
+			
 			// if new user was added successfully - save info in session and go to index.jps 
-	        if (DBManager.insertPerson(person)) {
-	    		
+	        if (PersonDAO.insertPerson(person)) {
 	    		session.setAttribute("currentUser", name);
 	    		userPath = "index";
 	        } else {
@@ -163,14 +166,14 @@ public class ControllerServlet extends HttpServlet {
         // if signin page is requested
         } else if (userPath.equals("/signin")) {
             
-        	// TODO: Implement category request
 			// (1) obtain an input info
 			String email = request.getParameter("email");
 			String password = request.getParameter("password");
 			Person person = null;
 			
 			try {
-				 person = DBManager.getPerson(email);
+				 person = PersonDAO.getPersonByEmail(email);
+				 System.out.println(person);
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -182,19 +185,102 @@ public class ControllerServlet extends HttpServlet {
 	    		System.out.println("Залогинился юзер ==> " + email + "; name ==> " + person.getName());
 	    		if (person.getRole() == 1) {
 	    			session.setAttribute("admin", person.getName());
+	    			session.setAttribute("id", person.getId());
 	    			System.out.println("Залогинился админ ==> " + email + "; name ==> " + person.getName());
 		        } 
 			} else {
 				userPath = "signin";
+				System.out.println("Не удалось залогиниться! Email: " + email);
 			}
 
-			// if sign Out page is requested
+			// if addNewUser page is requested
+        }  else if (userPath.equals("/addNewUser")) {
+			
+			// (1) obtain an input info
+			String email = request.getParameter("email");
+			String password = request.getParameter("password");
+			String name = request.getParameter("name");
+			int role = Integer.parseInt(request.getParameter("role"));
+			System.out.println("email ==> " + email + "; name ==> " + name);
+
+			if (PersonDAO.getPersonByEmail(email) == null) {
+				// (2) process an input info
+				// obtain from DB
+				Person person = new Person();
+				person.setEmail(email);
+				person.setPassword(password);
+				person.setName(name);
+				person.setRole(role);
+	
+				PersonDAO.insertPerson(person);
+	
+				List<Person> listOfPersons = PersonDAO.getAllPersons();
+	        	session.setAttribute("listOfUsers", listOfPersons);
+	        	userPath = "list-users";
+			} else {
+				session.setAttribute("alert-message", "userWithEnteredEmailAlreadyExists");
+	            userPath = "user-form";
+			}
+        	
+			// if deleteUser page is requested
+        }  else if (userPath.equals("/deleteUser")) {
+            // TODO: Implement cart page request
+            int id = Integer.parseInt(request.getParameter("id"));
+            PersonDAO.deletePersonById(id);
+            List<Person> listOfPersons = PersonDAO.getAllPersons();
+        	request.setAttribute("listOfUsers", listOfPersons);
+        	userPath = "list-users";
+
+            // if editUser page is requested
+        }  else if (userPath.equals("/goToEditUser")) {
+            int id = Integer.parseInt(request.getParameter("id"));
+            Person existingPerson = PersonDAO.getPersonById(id);
+            session.setAttribute("user", existingPerson);
+            userPath = "user-form";
+            
+            System.out.println("Отправляем юзера на редактирование: id =>" + id);
+            System.out.println(existingPerson);
+        	
+            // if updateUser page is requested
+        }  else if (userPath.equals("/updateUser")) {
+        	int id = Integer.parseInt(request.getParameter("id"));
+			String email = request.getParameter("email");
+			String previousEmail = request.getParameter("previousEmail");
+			String password = request.getParameter("password");
+			String name = request.getParameter("name");
+			int role = Integer.parseInt(request.getParameter("role"));
+			if (password.equals("")) {
+				password = request.getParameter("previousPassword");
+			}
+			System.out.println("id: " + id + "; email ==> " + email + "; password ==> " + password + "; name ==> " + name + "; role ==> " + role);
+			
+			
+			
+			if (PersonDAO.getPersonByEmail(email) == null || previousEmail.equals(email)) {
+					//if person with this email doesn't exist - update! 
+					// (2) process an input info
+					// obtain from DB
+					Person person = new Person(id, email, password, name, role);
+					if (!password.equals("")) {
+						person.setPassword(password);
+					} 
+					
+		        	PersonDAO.updatePerson(person);
+		        	session.removeAttribute("user");
+		            List<Person> listOfPersons = PersonDAO.getAllPersons();
+		        	session.setAttribute("listOfUsers", listOfPersons);
+		        	userPath = "list-users";
+			} else {
+					//if person with this email already exist - don't update and ask to re-enter
+		            System.out.println("Опять отправляем юзера на редактирование: id =>" + id);
+					session.setAttribute("alert-message", "userWithEnteredEmailAlreadyExists");
+		            userPath = "user-form";
+			}
+			
+            // if sign Out page is requested
         }  else if (userPath.equals("/viewCart")) {
             // TODO: Implement cart page request
-        	
             userPath = "cart";
-            
-            
         } else
         
         // if addToCart action is called
@@ -212,7 +298,7 @@ public class ControllerServlet extends HttpServlet {
             userPath = "confirmation";
         }
 
-        System.out.println("#End of doPost# userPath: " + userPath + "; user: " + request.getParameter("currentUser"));
+        System.out.println("#End of doPost# userPath: " + userPath + "; currentUser: " + session.getAttribute("currentUser") + "; user: " + session.getAttribute("user"));
 
         // use RequestDispatcher to forward request internally
 		//String url = request.getContextPath() + "/" + userPath;

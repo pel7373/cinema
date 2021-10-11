@@ -17,80 +17,42 @@
 
 <p>
 
-<label for="appt">Choose a time for your meeting:</label>
-
-<input type="time" id="appt" name="appt"
-       min="09:00" max="18:00" required>
-
-<small>Office hours are 9am to 6pm</small>
-
-<hr>
-<label for="start">Start date:</label>
-
-<input type="date" id="start" name="trip-start"
-       value="2018-07-22"
-       min="2018-01-01" max="2018-12-31">
-
-<hr>
-<form>
-  <div>
-    <label for="bday">Введите дату вашего рождения:</label>
-    <input type="date" id="bday" name="bday">
-  </div>
-</form>
 
 <hr>
 
-<form>
-    <div class="nativeDatePicker">
-      <label for="bday">Enter your birthday:</label>
-      <input type="date" id="bday" name="bday">
-      <span class="validity"></span>
-    </div>
-    <p class="fallbackLabel">Enter your birthday:</p>
-    <div class="fallbackDatePicker">
-      <span>
-        <label for="day">Day:</label>
-        <select id="day" name="day" min="1" max="31>
-        </select>
-      </span>
-      <span>
-        <label for="month">Month:</label>
-        <select id="month" name="month">
-          <option selected>January</option>
-          <option>February</option>
-          <option>March</option>
-          <option>April</option>
-          <option>May</option>
-          <option>June</option>
-          <option>July</option>
-          <option>August</option>
-          <option>September</option>
-          <option>October</option>
-          <option>November</option>
-          <option>December</option>
-        </select>
-      </span>
-      <span>
-        <label for="year">Year:</label>
-        <select id="year" name="year">
-        </select>
-      </span>
-    </div>
-</form>
+   	<!--Requirement jQuery-->
+	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+	<!--Load Script and Stylesheet -->
+	<script type="text/javascript" src="jquery.simple-dtpicker.js"></script>
+	<link type="text/css" href="jquery.simple-dtpicker.css" rel="stylesheet" />
+	<!---->
 
-<hr>
-<form>
-  <div>
-    <label for="appt-time">Choose an appointment time (opening hours 12:00 to 18:00): </label>
-    <input id="appt-time" type="time" name="appt-time"
-           min="12:00" max="18:00" required
-           pattern="[0-9]{2}:[0-9]{2}">
-    <span class="validity"></span>
-  </div>
-  <div>
-      <input type="submit" value="Submit form">
-  </div>
-</form>
+	<style type="text/css">
+		body { background-color: #fefefe; padding-left: 2%; padding-bottom: 100px; color: #101010; }
+		footer{ font-size:small;position:fixed;right:5px;bottom:5px; }
+		a:link, a:visited  { color: #0000ee; }
+		pre{ background-color: #eeeeee; margin-left: 1%; margin-right: 2%; padding: 2% 2% 2% 5%; }
+		p { font-size: 0.9rem; }
+		ul { font-size: 0.9rem; }
+		hr { border: 2px solid #eeeeee; margin: 2% 0% 2% -3%; }
+		h3 { border-bottom: 2px solid #eeeeee; margin: 2rem 0 2rem -1%; padding-left: 1%; padding-bottom: 0.1em; }
+		h4 { border-bottom: 1px solid #eeeeee; margin-top: 2rem; margin-left: -1%; padding-left: 1%; padding-bottom: 0.1em; }
+	</style>
+  
+	
+			<input type="datetime-local" name="date17" value="2021-09-20 09:00">
+			<script type="text/javascript">
+				$(function(){
+					$('*[name=date17]').appendDtpicker({
+						"inline": false,
+						"futureOnly": true,
+						"minTime":"08:00",
+						"maxTime":"22:01"
+
+					});
+				});
+			</script>
+	  
+
 
 <%@ include file="jspf/footer.jspf"%>

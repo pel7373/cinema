@@ -1,4 +1,4 @@
-package com.cinema.db;
+package com.cinema.dao;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -19,26 +19,34 @@ import java.util.logging.Logger;
 import com.cinema.entity.Movie;
 import com.cinema.entity.Person;
 
-public class DBManager {
+public class MovieDAO {
 
 	//private static final String URL_CONNECTION = getProperties(); 
 	private static final String URL_CONNECTION = "jdbc:mysql://localhost:3306/mydb?user=root&password=root";
 	
-	private static DBManager dbManager;
-	private static final Logger logger =  Logger.getLogger(DBManager.class.getName());
-
+	private static MovieDAO movieDAO;
+	private static final Logger logger =  Logger.getLogger(PersonDAO.class.getName());
+	
+	private static final String INSERT_PERSON = "INSERT INTO PERSON VALUES (DEFAULT, ?, ?, ?, ?);";
+	private static final String SELECT_USER_BY_ID = "SELECT ID, EMAIL, NAME, ROLE_ID FROM PERSON WHERE ID = ?;";
+	private static final String SELECT_USER_BY_EMAIL = "SELECT ID, EMAIL, NAME, ROLE_ID FROM PERSON WHERE EMAIL = ?;";
+	private static final String SELECT_ALL_PERSONS = "SELECT * FROM PERSON;";
+	private static final String DELETE_PERSON = "DELETE FROM PERSON WHERE ID = ?;";
+	private static final String UPDATE_PERSON = "UPDATE PERSON SET EMAIL = ?, PASSWORD = ?, NAME = ?, ROLE = 2 WHERE ID = ?;";
+	
+	
 	static ReentrantLock locker = new ReentrantLock();
 
-	private DBManager() {
+	private MovieDAO() {
 		super();
 	}
 
-	public static DBManager getInstance() {
+	public static MovieDAO getInstance() {
 		
-		if (dbManager == null) {
-			dbManager = new DBManager(); 
+		if (movieDAO == null) {
+			movieDAO = new MovieDAO(); 
 		}
-		return dbManager;
+		return movieDAO;
 	}
 	
 	public static String getProperties() {
@@ -60,95 +68,21 @@ public class DBManager {
 	}
 
 	public static Connection getConnection(String connectionUrl) throws SQLException {
+		Connection connection = null;
+		
 		try {
 			Class.forName("com.mysql.cj.jdbc.Driver").getDeclaredConstructor().newInstance();
+			connection = DriverManager.getConnection(connectionUrl);
 		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException
 				| NoSuchMethodException | SecurityException | ClassNotFoundException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
 
-		return DriverManager.getConnection(connectionUrl);
+		return connection;
 	}
 
-	public static Boolean insertPerson(Person person) {
-		PreparedStatement ps = null;
-		ResultSet id = null;
-		Connection connection = null;
-		try {
-	        locker.lock();
-	        System.out.println(URL_CONNECTION);
-	        connection = getConnection(URL_CONNECTION);
-	        ps = connection.prepareStatement("INSERT INTO person VALUES (DEFAULT , ?, ?, ?, ?);",          
-	        		Statement.RETURN_GENERATED_KEYS);
-	        ps.setString(1, person.getEmail());
-	        ps.setString(2, person.getPassword());
-	        ps.setString(3, person.getName());
-	        ps.setInt(4, person.getRole());
-	        ps.executeUpdate();
-	        id = ps.getGeneratedKeys();
-	        if (id.next()) { 
-	          	  person.setId(id.getInt(1)); 
-	        }
-	      } catch (Exception e) {
-			  logger.severe("Insert person: " + e.getMessage() + "; Error with person: " + person.getEmail());
-	      } finally {
-		    	closeAllConnections(connection, id, ps);
-		    	locker.unlock();
-	      }
-		return true;
-	}
-
-	public static Person getPerson(String email) {
-
-		PreparedStatement ps = null;
-		ResultSet id = null;
-		Connection connection = null;
-		try {
-	        locker.lock();
-	        connection = getConnection(URL_CONNECTION);
-	        ps = connection.prepareStatement("SELECT * FROM person where email = ?;",
-	        		Statement.RETURN_GENERATED_KEYS);          
-	        ps.setString(1, email);
-	        id = ps.executeQuery();
-	        
-	        if (id.next()) { 
-	          	Person person1 = new Person(id.getString(2), id.getString(3), id.getString(4), id.getInt(1));
-	          	//person1.setId(id.getInt(1));
-	        	return person1; 
-	        }
-	      } catch (Exception e) {
-			  logger.severe("Get person:" + e.getMessage() + "||| " + email);
-	      } finally {
-	    	  closeAllConnections(connection, id, ps);
-	    	  locker.unlock();
-	      }
-		return null;
-	}
-
-	public List<Person> findAllPersons() {
-		PreparedStatement ps = null;
-		ResultSet id = null;
-		Connection connection = null;
-		List<Person> list = new ArrayList<>();
-		try {
-	        locker.lock();
-	        connection = getConnection(URL_CONNECTION);
-	        ps = connection.prepareStatement("SELECT LOGIN FROM persons;");
-	        id = ps.executeQuery();
-	        while (id.next()) { 
-	          	list.add(getPerson(id.getString(1)));  
-	        }
-	        return list;
-	      } catch (Exception e) {
-			  logger.severe("findAllPersons:" + e.getMessage());
-	      } finally {
-		    	closeAllConnections(connection, id, ps);
-		    	locker.unlock();
-	      }
-		return list;
-	}
-
+	
 	public Boolean insertMovie(Movie movie) {
 		PreparedStatement ps = null;
 		ResultSet id = null;
@@ -333,15 +267,4 @@ public class DBManager {
 		return true;
 	}
 
-	public static void closeAllConnections(Connection connection, ResultSet id, PreparedStatement ps) {
-		if (connection != null && id != null && ps != null) {
-			try {
-				id.close();
-				ps.close();
-				connection.close();
-			} catch (SQLException e) {
-				logger.severe("Can't close connection: " + e.getMessage());
-			}
-		}
-	}
 }
