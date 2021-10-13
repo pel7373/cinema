@@ -23,7 +23,7 @@ public class SessionLocaleFilter implements Filter {
         //check variable language - in request and session! 
         //if user change language => req.getParameter("language") != null => set language in session!
         //if language in request is null => user didn't change language => if language in session is null => 
-        //	language in request and session set as in browser, otherwise language in request set as in session!
+        //language in request and session set as in browser, otherwise language in request set as in session!
         // As a result - language in session and in request is equal!
         
         if (req.getParameter("language") != null) { 
