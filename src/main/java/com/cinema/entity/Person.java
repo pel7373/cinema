@@ -26,6 +26,16 @@ public class Person implements Serializable {
 		this.role = role;
 	}
 
+	public Person(int id, String email, String password, String name, int role) {
+		super();
+		this.id = id;
+		this.email = email;
+		this.password = password;
+		this.name = name;
+		this.role = role;
+	}
+
+	
 	public int getId() {
 		return id;
 	}
@@ -68,7 +78,7 @@ public class Person implements Serializable {
 
 	@Override
 	public String toString() {
-		return "User [email = " + email + ", name = " + name + ", role = " + role + "]";
+		return "User [id = " + id + ", email = " + email + ",  encryptedPassword = " + password + ", name = " + name +  ", role = " + role + "]";
 	}
 
 	public String encryptPassword(String password) {

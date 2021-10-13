@@ -1,4 +1,4 @@
-<%@page import="com.cinema.db.DBManager"%>
+<%@page import="com.cinema.dao.PersonDAO"%>
 <%@page import="com.cinema.entity.Person"%>
 <%@ taglib prefix="c" 
 	uri="http://java.sun.com/jsp/jstl/core" %>
