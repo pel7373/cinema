@@ -66,6 +66,7 @@ public class ControllerServlet extends HttpServlet {
         }  else if (userPath.equals("/list-users")) {
         	List<Person> listOfPersons = PersonDAO.getAllPersons();
         	session.setAttribute("listOfUsers", listOfPersons);
+        	session.setAttribute("pageListOfUsers", "1");
         	userPath = "list-users";
         	
         } else if (userPath.equals("/category")) {

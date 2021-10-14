@@ -1,3 +1,4 @@
+<%@ page import="java.util.*" %>
 <%@ include file="jspf/header.jspf"%> 
 
 <%-- Set session-scoped variable to track the view user is coming from.
@@ -7,6 +8,28 @@
 
 <div id="caption"><fmt:message key='label.listOfUsers'/></div>
 
+<%  
+int pageid=Integer.parseInt(request.getParameter("pageListOfUsers"));  
+int linesPerPage = 5;  
+if(pageid==1){}  
+else{  
+    pageid = pageid - 1;  
+    pageid = pageid * linesPerPage + 1;  
+}  
+//List<Person> listForPage = EmpDao.getRecords(pageid,total);  
+  
+out.print("<h1>Page No: "+spageid+"</h1>");  
+out.print("<table border='1' cellpadding='4' width='60%'>");  
+out.print("<tr><th>Id</th><th>Name</th><th>Salary</th>");  
+for(Emp e:list){  
+    out.print("<tr><td>"+e.getId()+"</td><td>"+e.getName()+"</td>  
+<td>"+e.getSalary()+"</td></tr>");  
+}  
+out.print("</table>");  
+%>  
+<a href="view.jsp?page=1">1</a>  
+<a href="view.jsp?page=2">2</a>  
+<a href="view.jsp?page=3">3</a>  
 
 
 <a href="user-form.jsp"><fmt:message key='label.addNewUser'/></a>
