@@ -14,18 +14,21 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.logging.Logger;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import com.cinema.entity.Movie;
 import com.cinema.entity.Person;
 
 public class MovieDAO {
 
+	private static final Logger logger = LogManager.getLogger();
+	
 	//private static final String URL_CONNECTION = getProperties(); 
 	private static final String URL_CONNECTION = "jdbc:mysql://localhost:3306/mydb?user=root&password=root";
 	
 	private static MovieDAO movieDAO;
-	private static final Logger logger =  Logger.getLogger(PersonDAO.class.getName());
 	
 	private static final String INSERT_PERSON = "INSERT INTO PERSON VALUES (DEFAULT, ?, ?, ?, ?);";
 	private static final String SELECT_USER_BY_ID = "SELECT ID, EMAIL, NAME, ROLE_ID FROM PERSON WHERE ID = ?;";
@@ -62,7 +65,7 @@ public class MovieDAO {
 			System.out.println(properties.getProperty("connection.url"));
 			return properties.getProperty("connection.url");
 		} catch (IOException e) {
-			logger.severe("Can't read app.properties: " + e.getMessage());
+			logger.error("Can't read app.properties: " + e.getMessage());
 		}
 		return null;
 	}
@@ -100,7 +103,7 @@ public class MovieDAO {
 	          	  movie.setId(id.getInt(1)); 
 	        }
 	      } catch (Exception e) {
-			  logger.severe("Insert movie:" + e.getMessage() + "; Error with movie : " + movie);
+			  logger.error("Insert movie:" + e.getMessage() + "; Error with movie : " + movie);
 	      } finally {
 	    	  closeAllConnections(connection, id, ps);
 	    	  locker.unlock();
@@ -125,7 +128,7 @@ public class MovieDAO {
 	        }
 	        return list;
 	      } catch (Exception e) {
-			  logger.severe("findAllTeams:" + e.getMessage());
+			  logger.error("findAllTeams:" + e.getMessage());
 	      } finally {
 	    	  closeAllConnections(connection, id, ps);
 	    	  locker.unlock();
@@ -151,10 +154,10 @@ public class MovieDAO {
 	        	return movie1; 
 	        }
 	      } catch (Exception e) {
-			  logger.severe("Get person:" + e.getMessage() + "; person: " + string);
+			  logger.error("Get person:" + e.getMessage() + "; person: " + string);
 	      } finally {
-		    	closeAllConnections(connection, id, ps);
-		    	locker.unlock();
+	    	  ConnectionFactory.closeAllConnections(connection, id, ps);
+	    	  locker.unlock();
 	      }
 		return null;
 	}
@@ -182,11 +185,11 @@ public class MovieDAO {
 	          try {
 	        	  connection.rollback();
 	          } catch (SQLException e1) {
-	        	  logger.severe(e.getMessage());
+	        	  logger.error(e.getMessage());
 	          }
-	          logger.severe("SetTeamsForPerson:" + e.getMessage() + "&&& " + person);
+	          logger.error("SetTeamsForPerson:" + e.getMessage() + "&&& " + person);
 	      } finally {
-	    	  closeAllConnections(connection, id, ps);
+	    	  ConnectionFactory.closeAllConnections(connection, id, ps);
 	    	  locker.unlock();
 	      }
 		return true;
@@ -215,9 +218,9 @@ public class MovieDAO {
 	        }
 	        return list;
 	      } catch (Exception e) {
-			  logger.severe("getPersonTeams:" + e.getMessage());
+			  logger.error("getPersonTeams:" + e.getMessage());
 	      } finally {
-	    	  closeAllConnections(connection, id, ps);
+	    	  ConnectionFactory.closeAllConnections(connection, id, ps);
 	    	  locker.unlock();
 	      }
 
@@ -237,10 +240,10 @@ public class MovieDAO {
 	        ps.executeUpdate();
 		    id = ps.getGeneratedKeys();
 	      } catch (Exception e) {
-			  logger.severe("DeleteMovie:" + e.getMessage() + "; movie: " + movie);
+			  logger.error("DeleteMovie:" + e.getMessage() + "; movie: " + movie);
 	      } finally {
-		    	closeAllConnections(connection, id, ps);
-		    	locker.unlock();
+	    	  ConnectionFactory.closeAllConnections(connection, id, ps);
+	    	  locker.unlock();
 	      }
 		return true;
 	}
@@ -259,10 +262,10 @@ public class MovieDAO {
 	        ps.executeUpdate();
 	        id = ps.getGeneratedKeys();
 	      } catch (Exception e) {
-			  logger.severe("UpdateMovie:" + e.getMessage() + "; movie: " + movie);
+			  logger.error("UpdateMovie:" + e.getMessage() + "; movie: " + movie);
 	      } finally {
-		    	closeAllConnections(connection, id, ps);
-		    	locker.unlock();
+	    	  ConnectionFactory.closeAllConnections(connection, id, ps);
+	    	  locker.unlock();
 	      }
 		return true;
 	}

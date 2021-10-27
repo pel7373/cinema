@@ -1,20 +1,16 @@
 package com.cinema.dao;
 
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.lang.reflect.InvocationTargetException;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.logging.Logger;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import com.cinema.entity.Person;
 
@@ -24,11 +20,7 @@ import com.cinema.entity.Person;
  */
 public class PersonDAO {
 
-	//private static final String URL_CONNECTION = getProperties(); 
-	private static final String URL_CONNECTION = "jdbc:mysql://localhost:3306/mydb?user=root&password=root";
-	
-	private static PersonDAO personDAO;
-	private static final Logger logger =  Logger.getLogger(PersonDAO.class.getName());
+	private static final Logger logger = LogManager.getLogger();
 	
 	private static final String INSERT_PERSON = "INSERT INTO PERSON VALUES (DEFAULT, ?, ?, ?, ?);";
 	private static final String SELECT_USER_BY_ID =    "SELECT ID, EMAIL, PASSWORD, NAME, ROLE_ID FROM PERSON WHERE ID = ?;";
@@ -37,13 +29,23 @@ public class PersonDAO {
 	private static final String DELETE_PERSON = "DELETE FROM PERSON WHERE ID = ?;";
 	private static final String UPDATE_PERSON = "UPDATE PERSON SET EMAIL = ?, PASSWORD = ?, NAME = ?, ROLE_ID = ? WHERE ID = ?;";
 	
-	
+	private static PersonDAO personDAO;
+	static Connection connection = null;
+	Statement stmt;
 	static ReentrantLock locker = new ReentrantLock();
 
-	private PersonDAO() {
-		super();
+	public PersonDAO() {
 	}
 
+    private static Connection getConnection() 
+            throws SQLException, 
+                ClassNotFoundException 
+    {
+        Connection con = ConnectionFactory.
+                getInstance().getConnection();
+        return con;
+    }
+    
 	public static PersonDAO getInstance() {
 		
 		if (personDAO == null) {
@@ -52,47 +54,15 @@ public class PersonDAO {
 		return personDAO;
 	}
 	
-	public static String getProperties() {
-		Properties properties = new Properties();
-		System.out.println("Пробуем получить connection.url");
-		
-		//System.out.println(getClass().getResourceAsStream("/resources/app.properties"));
-		try (
-				InputStream input = new FileInputStream("app.properties")
-				//InputStream input = getClass().getResourceAsStream("app.properties");
-				) {
-			properties.load(input);
-			System.out.println(properties.getProperty("connection.url"));
-			return properties.getProperty("connection.url");
-		} catch (IOException e) {
-			logger.severe("Can't read app.properties: " + e.getMessage());
-		}
-		return null;
-	}
-
-	public static Connection getConnection(String connectionUrl) throws SQLException {
-		Connection connection = null;
-		
-		try {
-			Class.forName("com.mysql.cj.jdbc.Driver").getDeclaredConstructor().newInstance();
-			connection = DriverManager.getConnection(connectionUrl);
-		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException
-				| NoSuchMethodException | SecurityException | ClassNotFoundException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
-
-		return connection;
-	}
 
 	public static Boolean insertPerson(Person person) {
 		PreparedStatement ps = null;
 		ResultSet id = null;
-		Connection connection = null;
 		Boolean isResult = false;
 		try {
-	        locker.lock();
-	        connection = getConnection(URL_CONNECTION);
+	        connection = getConnection();
+			locker.lock();
+
 	        ps = connection.prepareStatement(INSERT_PERSON, Statement.RETURN_GENERATED_KEYS);
 	        //INSERT INTO PERSON VALUES (DEFAULT, ?, ?, ?, ?);
 	        ps.setString(1, person.getEmail());
@@ -107,9 +77,9 @@ public class PersonDAO {
 	        }
 	      } catch (Exception e) {
 	    	  isResult = false;
-	    	  logger.severe("Insert person: " + e.getMessage() + "; Error with person: " + person.getEmail());
+	    	  logger.error("Insert person: " + e.getMessage() + "; Error with person: " + person.getEmail());
 	      } finally {
-		    	closeAllConnections(connection, id, ps);
+		    	ConnectionFactory.closeAllConnections(connection, id, ps);
 		    	locker.unlock();
 	      }
 		return isResult;
@@ -118,11 +88,10 @@ public class PersonDAO {
 	public static Boolean updatePerson(Person person) {
 		PreparedStatement ps = null;
 		ResultSet id = null;
-		Connection connection = null;
 		Boolean isResult = false;
 		try {
 	        locker.lock();
-	        connection = getConnection(URL_CONNECTION);
+	        connection = getConnection();
 	        ps = connection.prepareStatement(UPDATE_PERSON, Statement.RETURN_GENERATED_KEYS);
 	        //"UPDATE PERSON SET EMAIL = ?, PASSWORD = ?, NAME = ?, ROLE_ID = ? WHERE ID = ?;";
 	        ps.setString(1, person.getEmail());
@@ -137,9 +106,9 @@ public class PersonDAO {
 	        }
 	      } catch (Exception e) {
 	    	  isResult = false;
-	    	  logger.severe("Update person: " + e.getMessage() + "; Error with person: " + person.getEmail());
+	    	  logger.error("Update person: " + e.getMessage() + "; Error with person: " + person.getEmail());
 	      } finally {
-		    	closeAllConnections(connection, id, ps);
+	    	  	ConnectionFactory.closeAllConnections(connection, id, ps);
 		    	locker.unlock();
 	      }
 		return isResult;
@@ -150,10 +119,9 @@ public class PersonDAO {
 		Person person = null;
 		PreparedStatement ps = null;
 		ResultSet id = null;
-		Connection connection = null;
 		try {
 	        locker.lock();
-	        connection = getConnection(URL_CONNECTION);
+	        connection = getConnection();
 	        ps = connection.prepareStatement(SELECT_USER_BY_ID, Statement.RETURN_GENERATED_KEYS);  
 	        
 	    	//private static final String SELECT_USER_BY_ID = "SELECT ID, EMAIL, PASSWORD, NAME, ROLE_ID FROM PERSON WHERE ID = ?;";
@@ -165,9 +133,9 @@ public class PersonDAO {
 	          	person = new Person(id.getInt(1), id.getString(2), id.getString(3), id.getString(4), id.getInt(5));
 	        }
 	      } catch (Exception e) {
-			  logger.severe("Get person by id:" + e.getMessage() + "||| id: " + id_person);
+			  logger.error("Get person by id:" + e.getMessage() + "||| id: " + id_person);
 	      } finally {
-	    	  closeAllConnections(connection, id, ps);
+	    	  ConnectionFactory.closeAllConnections(connection, id, ps);
 	    	  locker.unlock();
 	      }
 		return person;
@@ -177,10 +145,9 @@ public class PersonDAO {
 	public static Person getPersonByEmail(String email) {
 		PreparedStatement ps = null;
 		ResultSet id = null;
-		Connection connection = null;
 		try {
 	        locker.lock();
-	        connection = getConnection(URL_CONNECTION);
+	        connection = getConnection();
 	        ps = connection.prepareStatement(SELECT_USER_BY_EMAIL, Statement.RETURN_GENERATED_KEYS);
 	        //private static final String SELECT_USER_BY_EMAIL = "SELECT ID, EMAIL, PASSWORD, NAME, ROLE_ID FROM PERSON WHERE EMAIL = ?;";
 	    	
@@ -193,9 +160,9 @@ public class PersonDAO {
 	        	return person1; 
 	        }
 	      } catch (Exception e) {
-			  logger.severe("Get person:" + e.getMessage() + "||| " + email);
+			  logger.error("Get person:" + e.getMessage() + "||| " + email);
 	      } finally {
-	    	  closeAllConnections(connection, id, ps);
+	    	  ConnectionFactory.closeAllConnections(connection, id, ps);
 	    	  locker.unlock();
 	      }
 		return null;
@@ -204,11 +171,10 @@ public class PersonDAO {
 	public static List<Person> getAllPersons() {
 		PreparedStatement ps = null;
 		ResultSet id = null;
-		Connection connection = null;
 		List<Person> list = new ArrayList<>();
 		try {
 	        locker.lock();
-	        connection = getConnection(URL_CONNECTION);
+	        connection = getConnection();
 	        ps = connection.prepareStatement(SELECT_ALL_PERSONS);
 	    	//private static final String SELECT_ALL_PERSONS = "SELECT * FROM PERSON;";
 
@@ -217,10 +183,10 @@ public class PersonDAO {
 	          	list.add(new Person(id.getInt(1), id.getString(2), "", id.getString(4), id.getInt(5)));  
 	        }
 	      } catch (Exception e) {
-			  logger.severe("getAllPersons:" + e.getMessage());
+			  logger.error("getAllPersons:" + e.getMessage());
 	      } finally {
-		    	closeAllConnections(connection, id, ps);
-		    	locker.unlock();
+	    	  ConnectionFactory.closeAllConnections(connection, id, ps);
+	    	  locker.unlock();
 	      }
 		return list;
 	}
@@ -229,11 +195,10 @@ public class PersonDAO {
 		Person person = null;
 		PreparedStatement ps = null;
 		ResultSet id = null;
-		Connection connection = null;
 		Boolean isResult = false;
 		try {
 	        locker.lock();
-	        connection = getConnection(URL_CONNECTION);
+	        connection = getConnection();
 	        ps = connection.prepareStatement(DELETE_PERSON, Statement.RETURN_GENERATED_KEYS);  
 	        
 	    	//private static final String DELETE_PERSON = "DELETE FROM PERSON WHERE ID = ?;";
@@ -241,25 +206,11 @@ public class PersonDAO {
 	        ps.setInt(1, id_person);
 	        isResult = ps.executeUpdate() > 0;
 	      } catch (Exception e) {
-			  logger.severe("Get person by id:" + e.getMessage() + "||| id: " + id_person);
+			  logger.error("Get person by id:" + e.getMessage() + "||| id: " + id_person);
 	      } finally {
-	    	  closeAllConnections(connection, id, ps);
+	    	  ConnectionFactory.closeAllConnections(connection, id, ps);
 	    	  locker.unlock();
 	      }
 		return isResult;
-	}
-
-	
-
-	public static void closeAllConnections(Connection connection, ResultSet id, PreparedStatement ps) {
-		if (connection != null && id != null && ps != null) {
-			try {
-				id.close();
-				ps.close();
-				connection.close();
-			} catch (SQLException e) {
-				logger.severe("Can't close connection: " + e.getMessage());
-			}
-		}
 	}
 }

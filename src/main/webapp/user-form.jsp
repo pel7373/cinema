@@ -12,6 +12,10 @@
 		<p><fmt:message key='message.userWithEnteredEmailAlreadyExists'/>
 		<p>
 	</c:if>	
+	<c:if test="${sessionScope['alert-message'] == 'wrongEmail'}">	
+		<p><fmt:message key='message.wrongEmail'/>
+		<p>
+	</c:if>		
 	
 	<form action="updateUser" method="post">
 		<input type="hidden" name="id" value="<c:out value='${user.id}'/>" />
@@ -35,7 +39,11 @@
 	<c:if test="${sessionScope['alert-message'] == 'userWithEnteredEmailAlreadyExists'}">	
 		<p><fmt:message key='message.userWithEnteredEmailAlreadyExists'/>
 		<p>
-	</c:if>	
+	</c:if>
+	<c:if test="${sessionScope['alert-message'] == 'wrongEmail'}">	
+		<p><fmt:message key='message.wrongEmail'/>
+		<p>
+	</c:if>		
 
 	<form action="addNewUser" method="post">
 		<label><fmt:message key='label.yourEmail'/></label>&nbsp;<input name="email" value="<fmt:message key='label.yourEmail'/>" required="required"><br>	

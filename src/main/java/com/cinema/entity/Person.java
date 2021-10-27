@@ -1,6 +1,8 @@
 package com.cinema.entity;
 
 import java.io.Serializable;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Person implements Serializable {
 
@@ -35,6 +37,18 @@ public class Person implements Serializable {
 		this.role = role;
 	}
 
+	public boolean isEmailCorrect(String email) {
+		String regexString = "^((([0-9A-Za-z]{1}[-0-9A-z\\.]{0,30}[0-9A-Za-z]?)|([0-9А-Яа-я]{1}[-0-9А-я\\.]{0,30}[0-9А-Яа-я]?))@([-A-Za-z]{1,}\\.){1,}[-A-Za-z]{2,})$";
+		
+    	Pattern pattern = Pattern.compile(regexString);
+    	Matcher matcher = pattern.matcher(email);
+    	
+    	if (matcher.find()) {
+    		return true;
+    	}
+    	
+    	return false;
+	}
 	
 	public int getId() {
 		return id;

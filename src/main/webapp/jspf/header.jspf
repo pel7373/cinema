@@ -38,7 +38,7 @@
 								<c:out value="${sessionScope['currentUser']}"/>
 							</c:when>
 							<c:otherwise>
-								 <a href="signin"><fmt:message key='label.signin'/></a>
+								 <a href="signin.jsp"><fmt:message key='label.signin'/></a>
 							</c:otherwise>
 						</c:choose>
 						
@@ -86,7 +86,7 @@
                     </div>
 
                     <div class="headerWidget">
-                        <a href="index"><fmt:message key='label.mainpage'/></a>
+                        <a href="index.jsp"><fmt:message key='label.mainpage'/></a>
                     </div>
 
                 </div>
